@@ -1,0 +1,8 @@
+name: EconomyStatistics
+version: '${project.version}'
+main: fi.videosambo.economystatistic.Main
+api-version: 1.19
+depend: [ Vault, VaultEvents ]
+softdepend: [ EconomyShopGUI, EconomyShopGUI-Premium ]
+authors: [ videosambo ]
+description: Plugin for monitoring server economy, bying and selling.
