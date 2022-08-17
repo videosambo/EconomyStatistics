@@ -4,27 +4,17 @@ import org.bukkit.OfflinePlayer;
 
 import java.sql.Timestamp;
 
-public class PlayerEconomyData {
+public class PlayerEconomyData extends DataObject{
 
-    private Timestamp timestamp;
-    private OfflinePlayer player;
+    private final OfflinePlayer player;
     private double balance;
 
     public PlayerEconomyData(Timestamp timestamp, OfflinePlayer player, double balance) {
-        this.timestamp = timestamp;
+        super(timestamp, balance);
         this.player = player;
-        this.balance = balance;
-    }
-
-    public Timestamp getTimestamp() {
-        return timestamp;
     }
 
     public OfflinePlayer getPlayer() {
         return player;
-    }
-
-    public double getBalance() {
-        return balance;
     }
 }

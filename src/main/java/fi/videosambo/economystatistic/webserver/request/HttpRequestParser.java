@@ -17,10 +17,11 @@ public class HttpRequestParser {
     public HttpRequest parse(InputStream inputStream) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            String firstLine = null;
-            firstLine = reader.readLine();
+            String firstLine = reader.readLine();
 
             HttpMethodType methodType = getMethod(firstLine);
+            if (methodType == null)
+                methodType = HttpMethodType.INVALID;
             String path = getPath(firstLine);
             String httpVersion = getHttpVersion(firstLine);
             LinkedHashMap<String, String> headers = getHeaders(reader);
@@ -34,10 +35,10 @@ public class HttpRequestParser {
     }
 
     private HttpMethodType getMethod(String line) {
-        String[] splittedLine = line.split(" ", 3);
         try {
+            String[] splittedLine = line.split(" ", 3);
             return HttpMethodType.valueOf(splittedLine[0]);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException|NullPointerException e) {
             return HttpMethodType.INVALID;
         }
     }
@@ -59,14 +60,10 @@ public class HttpRequestParser {
             if (line.equals("")) {
                 break;
             } else {
-                try {
-                    String splittedLine[] = line.split(" ", 2);
-                    String key = splittedLine[0].substring(0, splittedLine[0].length() -1);
-                    String value = splittedLine[1].replaceAll("[\n\r]", "");
-                    headers.put(key, value);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    throw e;
-                }
+                String[] splittedLine = line.split(" ", 2);
+                String key = splittedLine[0].substring(0, splittedLine[0].length() -1);
+                String value = splittedLine[1].replaceAll("[\n\r]", "");
+                headers.put(key, value);
             }
         }
         return headers;

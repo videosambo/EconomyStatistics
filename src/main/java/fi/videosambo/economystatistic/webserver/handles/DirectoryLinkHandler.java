@@ -4,6 +4,7 @@ import fi.videosambo.economystatistic.webserver.request.HttpHandlerType;
 import fi.videosambo.economystatistic.webserver.request.HttpMethodType;
 import fi.videosambo.economystatistic.webserver.request.HttpRequest;
 import fi.videosambo.economystatistic.webserver.response.HttpResponse;
+import fi.videosambo.economystatistic.webserver.response.HttpResponseBuilder;
 import fi.videosambo.economystatistic.webserver.response.HttpResponseHeaderType;
 import fi.videosambo.economystatistic.webserver.util.HttpMimeType;
 
@@ -13,86 +14,59 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class DirectoryLinkHandler extends HttpHandler {
+
     private final String rootPath;
+    private String indexFile;
 
     public DirectoryLinkHandler(String rootPath) {
         this.rootPath = rootPath;
-        setTypeOfHandler(HttpHandlerType.FORM_HANDLER);
-        addHandledMethods(Arrays.asList(HttpMethodType.GET, HttpMethodType.POST, HttpMethodType.PUT, HttpMethodType.DELETE));
+        setTypeOfHandler(HttpHandlerType.DIRECTORY_LISTING_HANDLER);
+        addHandledMethod(HttpMethodType.GET);
+    }
+    public DirectoryLinkHandler(String rootPath, String indexFile) {
+        this.rootPath = rootPath;
+        setTypeOfHandler(HttpHandlerType.DIRECTORY_LISTING_HANDLER);
+        addHandledMethod(HttpMethodType.GET);
+        this.indexFile = indexFile;
     }
 
     @Override
     public HttpResponse processRequest(HttpRequest request) {
-        switch (request.getMethodType()) {
-            case GET:
-                return this.handleGet(request);
-            case POST:
-                return this.handlePost(request);
-            case PUT:
-                return this.handlePut(request);
-            case DELETE:
-                return this.handleDelete(request);
-            default:
-                return this.getResponseBuilder().getNotFoundResponse();
-        }
+        File[] files = this.getFileOperator().getFilesFromDirectory(this.rootPath);
+        if (indexFile != null)
+            for (File file : files) {
+                if (file.getName().equals(indexFile)) {
+                    return getResponseBuilder().getFoundResponse(indexFile);
+                }
+            }
+        byte[] body = this.getBodyContent(files);
+        HashMap<HttpResponseHeaderType, String> headers = this.getHeaders();
+        return this.getResponseBuilder().getOKResponse(body, headers);
     }
 
     @Override
     public boolean coversPathFromRequest(HttpRequest request) {
-        try {
-            if (request.getMethodType().equals(HttpMethodType.GET) || request.getMethodType().equals(HttpMethodType.DELETE)) {
-                return this.getFileOperator().filePathRefersFileContent(rootPath, request.getPath());
-            } else if (request.getMethodType().equals(HttpMethodType.POST) || request.getMethodType().equals(HttpMethodType.PUT)) {
-                return request.getHeaders().get("Content-Type").equals("application/x-www-form-urlencoded");
-            } else {
-                return false;
-            }
-        } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
-            return false;
+        return request.getPath().equals("/");
+    }
+
+    private byte[] getBodyContent(File[] files) {
+        StringBuilder body = new StringBuilder();
+        body.append("<html><head></head><body>");
+        for (File file : files) {
+            String link = this.generateLink(file);
+            body.append(link);
         }
+        body.append("</body></html>");
+        return body.toString().getBytes();
     }
 
-    private HttpResponse handleGet(HttpRequest request) {
-        String fileName = this.getFileOperator().removeKeyFromPathIfExists(request.getPath());
-        String fullFilePath = this.rootPath + fileName;
-        if (this.requestedFileExists(fullFilePath)) {
-            try {
-                String keyFromPath = this.getKeyFromFilePath(request.getPath());
-                String contentOfFile = this.getFileContentConverter().getFileContentAsString(fullFilePath);
-                if (contentOfFile.contains(keyFromPath)) {
-                    return this.getResponseBuilder().getOKResponse(contentOfFile.getBytes(), new HashMap<>());
-                } else {
-                    return this.getResponseBuilder().getNotFoundResponse();
-                }
-            } catch (IOException e) {
-                return this.getResponseBuilder().getInternalErrorResponse();
-            }
-        } else {
-            return this.getResponseBuilder().getNotFoundResponse();
-        }
+    private String generateLink(File file) {
+        return "<a href='/" + file.getName() + "'>" + file.getName() + "</a><br>";
     }
 
-    private HttpResponse handlePost(HttpRequest request) {
-        PostHandler postHandler = new PostHandler(this.rootPath);
-        return postHandler.processRequest(request);
-    }
-
-    private HttpResponse handlePut(HttpRequest request) {
-        PutHandler putHandler = new PutHandler(this.rootPath);
-        return putHandler.processRequest(request);
-    }
-
-    private HttpResponse handleDelete(HttpRequest request) {
-        DeleteHandler deleteHandler = new DeleteHandler(this.rootPath);
-        return deleteHandler.processRequest(request);
-    }
-
-    private String getKeyFromFilePath(String path) {
-        String[] pathsOfPath = path.split("/");
-        return pathsOfPath[pathsOfPath.length -1];
-    }
-
-    private boolean requestedFileExists(String fullFilePath) {
-        return this.getFileOperator().fileExists(fullFilePath);
+    private HashMap<HttpResponseHeaderType, String> getHeaders(){
+        return new HashMap<>() {{
+            put(HttpResponseHeaderType.CONTENT_TYPE, HttpMimeType.HTML.getValue());
+        }};
     }
 }

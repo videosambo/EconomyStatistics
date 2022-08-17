@@ -14,16 +14,17 @@ public class HttpResponseWriter {
     }
 
     public void write(HttpResponse response) throws IOException {
+
         this.response = response;
-        writeBytes((response.getStatusType().toString() + "\n").getBytes());
+        writeBytes((response.getHttpVersion() + " " + response.getStatusType().toString() + "\n").getBytes());
 
         for (HttpResponseHeaderType responseHeader : HttpResponseHeaderType.getHeaders()) {
             if (hasHeader(responseHeader.toString())) {
                 String contentType;
                 if (responseHeader.equals(HttpResponseHeaderType.CONTENT_TYPE)) {
-                    contentType = responseHeader.toString() + ": " + response.getHeaders().get(responseHeader.toString()) + "; charset=utf-8\n";
+                    contentType = responseHeader + ": " + response.getHeaders().get(responseHeader.toString()) + "; charset=utf-8\n";
                 } else {
-                    contentType = responseHeader.toString() + ": " + response.getHeaders().get(responseHeader.toString()) + "\n";
+                    contentType = responseHeader + ": " + response.getHeaders().get(responseHeader.toString()) + "\n";
                 }
                 writeBytes(contentType.getBytes());
             }

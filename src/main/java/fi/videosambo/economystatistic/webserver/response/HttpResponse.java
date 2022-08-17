@@ -1,21 +1,31 @@
 package fi.videosambo.economystatistic.webserver.response;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class HttpResponse {
 
     private byte[] bodyContent;
-    private String httpVersion;
+    private final String httpVersion;
 
-    private HttpStatusType statusType;
-    private HashMap<String, String> headers = new HashMap<>();
+    private final HttpStatusType statusType;
+    private final HashMap<String, String> headers = new HashMap<>();
 
     public HttpResponse(HttpStatusType statusType, byte[] bodyContent, HashMap<HttpResponseHeaderType, String> headers) {
+        headers.put(HttpResponseHeaderType.SERVER, "Java HTTP Server");
+        if (bodyContent != null)
+            headers.put(HttpResponseHeaderType.CONTENT_LENGHT, String.valueOf(bodyContent.length));
+        headers.put(HttpResponseHeaderType.DATE, getDateTimestamp());
         this.httpVersion = "HTTP/1.1";
         this.statusType = statusType;
         addBodyContent(bodyContent);
         setHeaders(headers);
+    }
+
+    private String getDateTimestamp() {
+        return new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z").format(new Date());
     }
 
     private void addBodyContent(byte[] fileContentInBytes) {

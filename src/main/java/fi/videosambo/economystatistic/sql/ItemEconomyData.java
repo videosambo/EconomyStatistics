@@ -6,34 +6,23 @@ import org.bukkit.OfflinePlayer;
 
 import java.sql.Timestamp;
 
-public class ItemEconomyData {
+public class ItemEconomyData extends DataObject {
 
-    private Timestamp timestamp;
-    private Material material;
-    private double price;
-    private EventType type;
-    private OfflinePlayer player;
-    private String plugin;
+    private final Material material;
+    private final EventType type;
+    private final OfflinePlayer player;
+    private final String plugin;
 
     public ItemEconomyData(Timestamp timestamp, Material material, double price, EventType type, OfflinePlayer player, String plugin) {
-        this.timestamp = timestamp;
+        super(timestamp, price);
         this.material = material;
-        this.price = price;
         this.type = type;
         this.player = player;
         this.plugin = plugin;
     }
 
-    public Timestamp getTimestamp() {
-        return timestamp;
-    }
-
     public Material getMaterial() {
         return material;
-    }
-
-    public double getPrice() {
-        return price;
     }
 
     public EventType getType() {

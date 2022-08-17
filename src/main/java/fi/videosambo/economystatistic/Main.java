@@ -52,7 +52,7 @@ public final class Main extends JavaPlugin {
             HttpRequestBuilder requestBuilder = new HttpRequestBuilder();
             ServerSocket serverSocket = new ServerSocket(8080);
             HttpRequestParser requestParser = new HttpRequestParser(requestBuilder);
-            HttpRequestRouter requestRouter = new HttpRequestRouter("C:\\xampp\\htdocs\\economystatistics");
+            HttpRequestRouter requestRouter = new HttpRequestRouter("C:\\xampp\\htdocs\\economystatistics", "index.html");
             ExecutorService executor = Executors.newFixedThreadPool(7);
             HttpServer server = new HttpServer(serverSocket, requestParser, requestRouter, executor);
             server.start();

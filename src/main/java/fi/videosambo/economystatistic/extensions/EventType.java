@@ -13,4 +13,12 @@ public enum EventType {
     public Integer getType() {
         return type;
     }
+
+    public static EventType getFromInt(int i) {
+        if (i == 0)
+            return EventType.SELL;
+        if (i == 1)
+            return EventType.BUY;
+        return null;
+    }
 }
